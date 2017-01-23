@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>
+            {{title}}
+        </title>
+    </head>
+    <body>
+        {% for row in posts %}
+            <b>{{row.Title}}</b>
+            <br>
+            {{row.Content}}
+            <br>
+            {{row.Created_at}}
+            <br>
+            {{row.Updated_at}}
+            <br>
+            <br>
+        {% endfor %} 
+    </body>
+</html>
