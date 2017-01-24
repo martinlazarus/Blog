@@ -62,3 +62,4 @@ $app->get('/posts', function(Request $request, Response $response, $args) {
 });
 
 $app->run();
+
