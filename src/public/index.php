@@ -53,12 +53,14 @@ $app->get('/posts', function(Request $request, Response $response, $args) {
     $statement = $db->query("SELECT * FROM Post");
     $statement->execute();
     $result = $statement->fetchAll();
-
-    return $this->view->render($response, 'posts.html', [
-                                                            'posts' => $result,
-                                                            'title' => "Posts"
-                                                        ]
-                              );
+    
+    $args = [
+                'posts' => $result,
+                'title' => "Posts",
+                'another' => "variable"
+            ];
+    
+    return $this->view->render($response, 'posts.html', $args);
 });
 
 $app->run();
