@@ -63,5 +63,45 @@ $app->get('/posts', function(Request $request, Response $response, $args) {
     return $this->view->render($response, 'posts.html', $args);
 });
 
+$app->post("/post", function(Request $request, Response $response) {
+    
+    if (
+            $request->getParam("title") != null && 
+            $request->getParam("content") != null && 
+            $request->getParam("created_at") != null && 
+            $request->getParam("updated_at") != null
+        )
+    {
+    
+        $title = $request->getParam("title");
+        $content = $request->getParam("content");
+        $created_at = $request->getParam("created_at");
+        $updated_at = $request->getParam("updated_at");
+
+        /* @var $db PDO */
+        $db = $this->db;
+
+        try
+        {
+            $stmp = $db->prepare("INSERT INTO Post VALUES(DEFAULT, :title, :content, :created_at, :updated_at)");
+            $stmp->bindParam('title', $title);
+            $stmp->bindParam('content', $content);
+            $stmp->bindParam('created_at', $created_at);
+            $stmp->bindParam('updated_at', $updated_at);
+            $stmp->execute();
+            echo "Post created successfully!";
+        } 
+        catch(Exception $e)
+        {
+            echo "Sorry, there was an error. Please try again.";
+        };
+    }
+    else
+    {
+        echo "Please check your request and try again.";
+    }
+});
+
+
 $app->run();
 
