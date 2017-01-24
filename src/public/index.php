@@ -102,6 +102,35 @@ $app->post("/post", function(Request $request, Response $response) {
     }
 });
 
+$app->delete('/post/{id}', function(Request $request, Response $response, $args){
+    if (array_key_exists('id', $args))
+    {
+        if (is_numeric($args['id']) == 1)
+        {
+            /* @var $db PDO */
+            $db = $this->db;
+            
+            $stmp = $db->prepare("DELETE FROM Post WHERE PostId = :id");
+            $stmp->bindParam('id', $args['id']);
+            $rowsEffected = $stmp->execute();
+            var_dump($rowsEffected);
+            var_dump($args['id']);
+            if($rowsEffected)
+            {
+                echo "Post has been deleted successfully";
+            }
+        }
+        else
+        {
+            echo "You have entered a value that is not a number. Please try again";
+        }
+    }
+    else
+    {
+        echo "Please check your request and try again.";
+    }
+});
+
 
 $app->run();
 
