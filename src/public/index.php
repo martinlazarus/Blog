@@ -40,6 +40,7 @@ $container["view"] = function ($container)
 };
 
 $app = new \Slim\App($container);
+//$app->config('debug', true);
         
 $app->get('/', function(Request $request, Response $response) {
     $response->getBody()->write("Hello World");
@@ -89,17 +90,18 @@ $app->post("/post", function(Request $request, Response $response) {
             $stmp->bindParam('created_at', $created_at);
             $stmp->bindParam('updated_at', $updated_at);
             $stmp->execute();
-            echo "Post created successfully!";
+            $args = ['message' => 'Post created successfully!'];
         } 
         catch(Exception $e)
         {
-            echo "Sorry, there was an error. Please try again.";
-        };
+            $args = ['message' => 'Sorry, there was an error. Please try again.'];
+        }
     }
     else
     {
-        echo "Please check your request and try again.";
+        $args = ['message' => 'Please check your request and try again.'];
     }
+    return $this->view->render($response, 'post.html.twig', $args);
 });
 
 $app->delete('/post/{id}', function(Request $request, Response $response, $args){
@@ -112,25 +114,33 @@ $app->delete('/post/{id}', function(Request $request, Response $response, $args)
             
             $stmp = $db->prepare("DELETE FROM Post WHERE PostId = :id");
             $stmp->bindParam('id', $args['id']);
-            $rowsEffected = $stmp->execute();
-            var_dump($rowsEffected);
-            var_dump($args['id']);
+            $stmp->execute();
+            $rowsEffected = $stmp->rowCount();
             if($rowsEffected)
             {
-                echo "Post has been deleted successfully";
+                $args = ['message' => 'Post has been deleted successfully'];
+            }
+            else 
+            {
+                $args = ['message' => 'This post does not exist, please try another post id'];
             }
         }
         else
         {
-            echo "You have entered a value that is not a number. Please try again";
+            $args = ['message' => 'You have entered a value that is not a number. Please try again' ];
         }
     }
     else
     {
-        echo "Please check your request and try again.";
+        $args = ['message' => 'Please check your request and try again'];
     }
+    return $this->view->render($response, 'post.html.twig', $args);
 });
 
+$app->get('/newpost', function(Request $request, Response $response, $args) {
+    
+    return $this->view->render($response, "newpost.html.twig", $args);
+});
 
 $app->run();
 
