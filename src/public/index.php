@@ -64,31 +64,24 @@ $app->get('/posts', function(Request $request, Response $response, $args) {
     return $this->view->render($response, 'posts.html', $args);
 });
 
-$app->post("/post", function(Request $request, Response $response) {
-    
+$app->post('/post', function(Request $request, Response $response) {
     if (
             $request->getParam("title") != null && 
-            $request->getParam("content") != null && 
-            $request->getParam("created_at") != null && 
-            $request->getParam("updated_at") != null
+            $request->getParam("content") != null
         )
     {
     
         $title = $request->getParam("title");
         $content = $request->getParam("content");
-        $created_at = $request->getParam("created_at");
-        $updated_at = $request->getParam("updated_at");
 
         /* @var $db PDO */
         $db = $this->db;
 
         try
         {
-            $stmp = $db->prepare("INSERT INTO Post VALUES(DEFAULT, :title, :content, :created_at, :updated_at)");
+            $stmp = $db->prepare("INSERT INTO Post VALUES(DEFAULT, :title, :content, DEFAULT, DEFAULT)");
             $stmp->bindParam('title', $title);
             $stmp->bindParam('content', $content);
-            $stmp->bindParam('created_at', $created_at);
-            $stmp->bindParam('updated_at', $updated_at);
             $stmp->execute();
             $args = ['message' => 'Post created successfully!'];
         } 
@@ -101,7 +94,7 @@ $app->post("/post", function(Request $request, Response $response) {
     {
         $args = ['message' => 'Please check your request and try again.'];
     }
-    return $this->view->render($response, 'post.html.twig', $args);
+    return $this->view->render($response, 'message.html.twig', $args);
 });
 
 $app->delete('/post/{id}', function(Request $request, Response $response, $args){
@@ -142,5 +135,73 @@ $app->get('/newpost', function(Request $request, Response $response, $args) {
     return $this->view->render($response, "newpost.html.twig", $args);
 });
 
+$app->get('/addcategory', function(Request $request, Response $response, $args) { 
+    return $this->view->render($response, "addcategory.html.twig", $args);
+});
+
+$app->post('/addcategory', function(Request $request, Response $response, $args) { 
+    if($request->getParam('category') != null)
+    {
+        $category = $request->getParam('category');
+        $query = "INSERT INTO Category VALUES (DEFAULT, :category)";
+        $params = ['category' => $category];
+        dbCreateUpdateDelete($this->db, $query, $params);
+        $args = ['message' => 'Category created successfully'];
+        return $this->view->render($response, "message.html.twig", $args);
+    }
+    else
+    {
+        $args = ['message' => 'Please enter a category and try again'];
+        return $this->view->render($response, "message.html.twig", $args);
+    }
+});
+
+$app->get('/addauthor', function(Request $request, Response $response, $args) { 
+    return $this->view->render($response, "addauthor.html.twig", $args);
+});
+
+$app->post('/addauthor', function(Request $request, Response $response, $args) {
+    if (    
+            $request->getParam('email') != null &&
+            $request->getParam('password') != null &&
+            $request->getParam('firstname') != null &&
+            $request->getParam('lastname') != null
+       )
+    {
+        $email = $request->getParam('email');
+        $password = $request->getParam('password');
+        $firstname = $request->getParam('firstname');
+        $lastname = $request->getParam('lastname');
+        
+        $query = "INSERT INTO Account VALUES(DEFAULT, :email, :password, :firstname, :lastname)";
+        $params = [
+                    'email' => $email, 
+                    'password' => $password, 
+                    'firstname' => $firstname, 
+                    'lastname' => $lastname
+                  ];
+        dbCreateUpdateDelete($this->db, $query, $params);
+        $args = ['message' => 'Account inserted successfully'];
+    }
+    else
+    {
+        $args = ['message' => 'Please check your input and try again.'];
+    }
+    return $this->view->render($response, "message.html.twig", $args); 
+});
+
 $app->run();
 
+function dbCreateUpdateDelete(PDO $db, string $query, array $params):int
+{
+    $stmp = $db->prepare($query);
+    $stmp->execute($params);
+    return $stmp->rowCount();
+}
+
+function dbGetRecords(PDO $db, string $query, array $params, bool $oneRecordOnly)
+{
+    $stmp = $db->prepare($query);
+    $stmp->execute($params);
+    return ($oneRecordOnly ? $stmp->fetch() : $stmp->fetchAll());
+}

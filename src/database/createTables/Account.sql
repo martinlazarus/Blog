@@ -1,0 +1,9 @@
+CREATE TABLE Account
+(
+    AccountId INT(11) NOT NULL AUTO_INCREMENT,
+    Email VARCHAR(200) NOT NULL,
+    Password VARCHAR(100) NOT NULL,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    CONSTRAINT PK_Account_AccountId PRIMARY KEY (AccountId)
+)
