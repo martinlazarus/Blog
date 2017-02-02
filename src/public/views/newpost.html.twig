@@ -17,11 +17,20 @@
     
     <form action="/post" method="POST" >
         <p><input type="text" placeholder="Title" name="title"></p>
+        <p>Category: <select name="category">
+            {% for cat in categories %}
+                <option value="{{cat.CategoryId}}">{{cat.Name}}</option>
+            {% endfor %}
+        </select></p>
+        
+        <p>Author: <select name="author">
+            {% for author in authors %}
+                <option value="{{author.AuthorId}}">{{author.FirstName}} {{author.LastName}}</option>
+            {% endfor %}
+            </select></p>
         <p><textarea placeholder="Content" name="content" rows="10" cols="50"></textarea></p>
     
         <button type="submit">Save Post!</button>
     </form>
-    
-    
     
 {% endblock %}

@@ -66,23 +66,14 @@ $app->get('/posts', function(Request $request, Response $response, $args) {
 
 $app->post('/post', function(Request $request, Response $response) {
     if (
-            $request->getParam("title") != null && 
-            $request->getParam("content") != null
+            checkValidParams($request, ['title', 'content'])
         )
     {
-    
-        $title = $request->getParam("title");
-        $content = $request->getParam("content");
-
-        /* @var $db PDO */
-        $db = $this->db;
-
         try
         {
-            $stmp = $db->prepare("INSERT INTO Post VALUES(DEFAULT, :title, :content, DEFAULT, DEFAULT)");
-            $stmp->bindParam('title', $title);
-            $stmp->bindParam('content', $content);
-            $stmp->execute();
+            $query = "INSERT INTO Post VALUES(DEFAULT, :title, :content, DEFAULT, DEFAULT)";
+            $params = getPDOParams(['title', 'content'], $request);
+            dbCreateUpdateDelete($this->db, $query, $params);
             $args = ['message' => 'Post created successfully!'];
         } 
         catch(Exception $e)
@@ -131,8 +122,29 @@ $app->delete('/post/{id}', function(Request $request, Response $response, $args)
 });
 
 $app->get('/newpost', function(Request $request, Response $response, $args) {
+    $categoryQuery = "SELECT * FROM Category";
+    $authorQuery = "SELECT AccountId, FirstName, LastName FROM Account";
+    $args['categories'] = dbGetRecords($this->db, $categoryQuery, [], 0);
+    $args['authors'] = dbGetRecords($this->db, $authorQuery, [], 0);
     
     return $this->view->render($response, "newpost.html.twig", $args);
+});
+
+$app->get('/editpost/{id}', function(Request $request, Response $response, $args) {
+    if (array_key_exists('id', $args) && is_numeric($args['id']))
+    {
+        $id = $args['id'];
+        $args['post'] = dbGetRecords($this->db, "SELECT CategoryId, AccountId, Title, Content FROM Post WHERE PostId = :id", ['id' => $id], 1);        
+        $args['categories'] = dbGetRecords($this->db, "SELECT *, CASE WHEN CategoryId = :categoryId THEN 'selected' ELSE NULL END AS sel FROM Category", ['categoryId' => $args['post']['CategoryId']], 0);
+        $args['authors'] = dbGetRecords($this->db, "SELECT AccountId, FirstName, LastName, CASE WHEN AccountId = :accountId THEN 'selected' ELSE NULL END AS sel FROM Account", ['accountId' => $args['post']['AccountId']], 0);
+        
+        return $this->view->render($response, "editpost.html.twig", $args);
+    }
+    else
+    {
+        $args['message'] = "You have entered an invalid post, please try again";
+        return $this->view->render($response, "editpost.html.twig", $args);
+    }
 });
 
 $app->get('/addcategory', function(Request $request, Response $response, $args) { 
@@ -161,25 +173,23 @@ $app->get('/addauthor', function(Request $request, Response $response, $args) {
 });
 
 $app->post('/addauthor', function(Request $request, Response $response, $args) {
-    if (    
-            $request->getParam('email') != null &&
-            $request->getParam('password') != null &&
-            $request->getParam('firstname') != null &&
-            $request->getParam('lastname') != null
+    if (
+            checkValidParams($request, ['email', 'password', 'firstname', 'lastname'])
        )
     {
-        $email = $request->getParam('email');
-        $password = $request->getParam('password');
-        $firstname = $request->getParam('firstname');
-        $lastname = $request->getParam('lastname');
+//        $email = $request->getParam('email');
+//        $password = $request->getParam('password');
+//        $firstname = $request->getParam('firstname');
+//        $lastname = $request->getParam('lastname');
         
         $query = "INSERT INTO Account VALUES(DEFAULT, :email, :password, :firstname, :lastname)";
-        $params = [
-                    'email' => $email, 
-                    'password' => $password, 
-                    'firstname' => $firstname, 
-                    'lastname' => $lastname
-                  ];
+        $params = getPDOParams(['email', 'password', 'firstname', 'lastname'], $request);
+//        $params = [
+//                    'email' => $email, 
+//                    'password' => $password, 
+//                    'firstname' => $firstname, 
+//                    'lastname' => $lastname
+//                  ];
         dbCreateUpdateDelete($this->db, $query, $params);
         $args = ['message' => 'Account inserted successfully'];
     }
@@ -204,4 +214,28 @@ function dbGetRecords(PDO $db, string $query, array $params, bool $oneRecordOnly
     $stmp = $db->prepare($query);
     $stmp->execute($params);
     return ($oneRecordOnly ? $stmp->fetch() : $stmp->fetchAll());
+}
+
+function checkValidParams(Request $request, array $params):bool
+{
+    foreach($params as $p)
+    {
+        if (!empty($request->getParam($p)))
+        {   
+            continue;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+function getPDOParams(array $keys, Request $request) {
+    $vals = [];
+    foreach ($keys as $k) {
+        $vals[$k] = $request->getParam($k);
+    }
+    return $vals;
 }
