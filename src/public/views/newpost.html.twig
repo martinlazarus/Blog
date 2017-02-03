@@ -1,4 +1,3 @@
-
 {% extends "/templates/base.html.twig" %}
 
 {% block title %}
@@ -7,9 +6,6 @@
 
 {% block head %}
     {{ parent() }}
-    <style type="text/css"> 
-        body {text-align: center;}
-    </style>
 {% endblock %}
 
 {% block content %}
@@ -17,15 +13,15 @@
     
     <form action="/post" method="POST" >
         <p><input type="text" placeholder="Title" name="title"></p>
-        <p>Category: <select name="category">
+        <p>Category: <select name="categoryid">
             {% for cat in categories %}
                 <option value="{{cat.CategoryId}}">{{cat.Name}}</option>
             {% endfor %}
         </select></p>
         
-        <p>Author: <select name="author">
+        <p>Author: <select name="authorid">
             {% for author in authors %}
-                <option value="{{author.AuthorId}}">{{author.FirstName}} {{author.LastName}}</option>
+                <option value="{{author.AuthorId}}">{{author.DisplayName}}</option>
             {% endfor %}
             </select></p>
         <p><textarea placeholder="Content" name="content" rows="10" cols="50"></textarea></p>

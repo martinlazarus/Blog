@@ -49,30 +49,41 @@ $app->get('/', function(Request $request, Response $response) {
 });
 
 $app->get('/posts', function(Request $request, Response $response, $args) {
-    /* @var $db PDO */
-    $db = $this->db;
-    $statement = $db->query("SELECT * FROM Post");
-    $statement->execute();
-    $result = $statement->fetchAll();
+    $query = "  SELECT
+                    P.PostId,
+                    P.Title,
+                    P.Content,
+                    P.Created_at,
+                    P.Updated_at,
+                    A.DisplayName,
+                    A.FirstName,
+                    A.LastName,
+                    C.Name AS CategoryName
+                FROM 
+                    Post AS P
+                    JOIN Author AS A ON P.AuthorId = A.AuthorId
+                    JOIN Category AS C ON P.CategoryId = C.CategoryId";
+    $args['posts'] = dbGetRecords($this->db, $query, [], 0);
     
-    $args = [
-                'posts' => $result,
-                'title' => "Posts",
-                'another' => "variable"
-            ];
-    
-    return $this->view->render($response, 'posts.html', $args);
+    return $this->view->render($response, 'posts.html.twig', $args);
 });
 
 $app->post('/post', function(Request $request, Response $response) {
     if (
-            checkValidParams($request, ['title', 'content'])
-        )
+            checkValidParams($request, ['categoryid', 'authorid', 'title', 'content'])
+       )
     {
         try
         {
-            $query = "INSERT INTO Post VALUES(DEFAULT, :title, :content, DEFAULT, DEFAULT)";
-            $params = getPDOParams(['title', 'content'], $request);
+            $query = "INSERT INTO Post
+                        (
+                            CategoryId,
+                            AuthorId,
+                            Title,
+                            Content
+                        )
+                    VALUES(:categoryid, :authorid, :title, :content)";
+            $params = getPDOParams(['categoryid', 'authorid', 'title', 'content'], $request);
             dbCreateUpdateDelete($this->db, $query, $params);
             $args = ['message' => 'Post created successfully!'];
         } 
@@ -95,12 +106,10 @@ $app->delete('/post/{id}', function(Request $request, Response $response, $args)
         {
             /* @var $db PDO */
             $db = $this->db;
-            
-            $stmp = $db->prepare("DELETE FROM Post WHERE PostId = :id");
-            $stmp->bindParam('id', $args['id']);
-            $stmp->execute();
-            $rowsEffected = $stmp->rowCount();
-            if($rowsEffected)
+            $query = "DELETE FROM Post WHERE PostId = :id";
+            $params = getPDOParamsArray(['id'], $args);
+            $rows = dbCreateUpdateDelete($this->db, $query, $params);
+            if($rows)
             {
                 $args = ['message' => 'Post has been deleted successfully'];
             }
@@ -123,7 +132,7 @@ $app->delete('/post/{id}', function(Request $request, Response $response, $args)
 
 $app->get('/newpost', function(Request $request, Response $response, $args) {
     $categoryQuery = "SELECT * FROM Category";
-    $authorQuery = "SELECT AccountId, FirstName, LastName FROM Account";
+    $authorQuery = "SELECT AuthorId, DisplayName FROM Author";
     $args['categories'] = dbGetRecords($this->db, $categoryQuery, [], 0);
     $args['authors'] = dbGetRecords($this->db, $authorQuery, [], 0);
     
@@ -134,9 +143,23 @@ $app->get('/editpost/{id}', function(Request $request, Response $response, $args
     if (array_key_exists('id', $args) && is_numeric($args['id']))
     {
         $id = $args['id'];
-        $args['post'] = dbGetRecords($this->db, "SELECT CategoryId, AccountId, Title, Content FROM Post WHERE PostId = :id", ['id' => $id], 1);        
-        $args['categories'] = dbGetRecords($this->db, "SELECT *, CASE WHEN CategoryId = :categoryId THEN 'selected' ELSE NULL END AS sel FROM Category", ['categoryId' => $args['post']['CategoryId']], 0);
-        $args['authors'] = dbGetRecords($this->db, "SELECT AccountId, FirstName, LastName, CASE WHEN AccountId = :accountId THEN 'selected' ELSE NULL END AS sel FROM Account", ['accountId' => $args['post']['AccountId']], 0);
+        $postQuery = "SELECT PostId, CategoryId, AuthorId, Title, Content FROM Post WHERE PostId = :id";
+        $args['post'] = dbGetRecords($this->db, $postQuery, ['id' => $id], 1);
+
+        $categoriesQuery = "SELECT
+                                *, 
+                                CASE WHEN CategoryId = :categoryId THEN 'selected' ELSE NULL END AS sel 
+                            FROM 
+                                Category";
+        $args['categories'] = dbGetRecords($this->db, $categoriesQuery, ['categoryId' => $args['post']['CategoryId']], 0);
+        
+        $authorsQuery = "SELECT 
+                            AuthorId, 
+                            DisplayName, 
+                            CASE WHEN AuthorId = :authorid THEN 'selected' ELSE NULL END AS sel 
+                        FROM 
+                            Author";
+        $args['authors'] = dbGetRecords($this->db, $authorsQuery, ['authorid' => $args['post']['AuthorId']], 0);
         
         return $this->view->render($response, "editpost.html.twig", $args);
     }
@@ -147,6 +170,20 @@ $app->get('/editpost/{id}', function(Request $request, Response $response, $args
     }
 });
 
+$app->post('/editpost', function(Request $request, Response $response, $args) {
+    $params = getPDOParams(['postid', 'title', 'content', 'category', 'author'], $request);
+    $query = "UPDATE POST
+                SET CategoryId = :category,
+                    AuthorId = :author,
+                    Title = :title,
+                    Content = :content
+              WHERE
+                PostId = :postid";
+    $rows = dbCreateUpdateDelete($this->db, $query, $params);
+    $args['message'] = ($rows >= 1 ? "Post updated successfully" : "Problem updated Post. Please try again.");
+    $this->view->render($response, 'message.html.twig', $args);
+});
+
 $app->get('/addcategory', function(Request $request, Response $response, $args) { 
     return $this->view->render($response, "addcategory.html.twig", $args);
 });
@@ -154,9 +191,8 @@ $app->get('/addcategory', function(Request $request, Response $response, $args) 
 $app->post('/addcategory', function(Request $request, Response $response, $args) { 
     if($request->getParam('category') != null)
     {
-        $category = $request->getParam('category');
         $query = "INSERT INTO Category VALUES (DEFAULT, :category)";
-        $params = ['category' => $category];
+        $params = getPDOParams(['category'], $request);
         dbCreateUpdateDelete($this->db, $query, $params);
         $args = ['message' => 'Category created successfully'];
         return $this->view->render($response, "message.html.twig", $args);
@@ -174,22 +210,11 @@ $app->get('/addauthor', function(Request $request, Response $response, $args) {
 
 $app->post('/addauthor', function(Request $request, Response $response, $args) {
     if (
-            checkValidParams($request, ['email', 'password', 'firstname', 'lastname'])
+            checkValidParams($request, ['displayname', 'firstname', 'lastname'])
        )
-    {
-//        $email = $request->getParam('email');
-//        $password = $request->getParam('password');
-//        $firstname = $request->getParam('firstname');
-//        $lastname = $request->getParam('lastname');
-        
-        $query = "INSERT INTO Account VALUES(DEFAULT, :email, :password, :firstname, :lastname)";
-        $params = getPDOParams(['email', 'password', 'firstname', 'lastname'], $request);
-//        $params = [
-//                    'email' => $email, 
-//                    'password' => $password, 
-//                    'firstname' => $firstname, 
-//                    'lastname' => $lastname
-//                  ];
+    {   
+        $query = "INSERT INTO Author VALUES(DEFAULT, :displayname, :firstname, :lastname)";
+        $params = getPDOParams(['displayname', 'firstname', 'lastname'], $request);
         dbCreateUpdateDelete($this->db, $query, $params);
         $args = ['message' => 'Account inserted successfully'];
     }
@@ -236,6 +261,14 @@ function getPDOParams(array $keys, Request $request) {
     $vals = [];
     foreach ($keys as $k) {
         $vals[$k] = $request->getParam($k);
+    }
+    return $vals;
+}
+
+function getPDOParamsArray(array $keys, array $args) {
+    $vals = [];
+    foreach ($keys as $k) {
+        $vals[$k] = $args[$k];
     }
     return $vals;
 }
