@@ -1,0 +1,41 @@
+
+{% extends "/templates/base.html.twig" %}
+
+{% block title %}
+    New Post
+{% endblock %}
+
+{% block head %}
+    {{ parent() }}
+    <style type="text/css"> 
+        body {text-align: center;}
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h1>Edit Post</h1>
+    
+    <form action="/editpost" method="POST" >
+        <p><input type="text" placeholder="Title" name="title" value="{{post.Title}}"></p>
+        <p>
+            <select name="category">
+            {% for cat in categories %}
+                <option value="{{cat.CategoryId}}" {{cat.sel}}>{{cat.Name}}</option>
+            {% endfor %}
+            </select>
+        </p>
+        <p>
+            <select name="author">
+                {% for a in authors %}
+                    <option value="{{a.AuthorId}}" {{a.sel}}>{{a.DisplayName}}</option>
+                {% endfor %}
+            </select>
+        </p>
+        <p><textarea placeholder="Content" name="content" rows="10" cols="50">{{post.Content}}</textarea></p>
+        <p><input type="hidden" value="{{post.PostId}}" name="postid"></p>
+        <button type="submit">Save Post!</button>
+    </form>
+    
+    
+    
+{% endblock %}
