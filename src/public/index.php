@@ -99,7 +99,7 @@ $app->post('/post', function(Request $request, Response $response) {
     return $this->view->render($response, 'message.html.twig', $args);
 });
 
-$app->delete('/post/{id}', function(Request $request, Response $response, $args){
+$app->get('/deletepost/{id}', function(Request $request, Response $response, $args){
     if (array_key_exists('id', $args))
     {
         if (is_numeric($args['id']) == 1)
@@ -127,7 +127,7 @@ $app->delete('/post/{id}', function(Request $request, Response $response, $args)
     {
         $args = ['message' => 'Please check your request and try again'];
     }
-    return $this->view->render($response, 'post.html.twig', $args);
+    return $this->view->render($response, 'message.html.twig', $args);
 });
 
 $app->get('/newpost', function(Request $request, Response $response, $args) {
@@ -142,31 +142,40 @@ $app->get('/newpost', function(Request $request, Response $response, $args) {
 $app->get('/editpost/{id}', function(Request $request, Response $response, $args) {
     if (array_key_exists('id', $args) && is_numeric($args['id']))
     {
-        $id = $args['id'];
-        $postQuery = "SELECT PostId, CategoryId, AuthorId, Title, Content FROM Post WHERE PostId = :id";
-        $args['post'] = dbGetRecords($this->db, $postQuery, ['id' => $id], 1);
+        $checkPost = "SELECT PostId FROM Post WHERE PostId = :postid";
+        if (dbGetRecords($this->db, $checkPost, ['postid' => $args['id']], 1))
+        {
+            $id = $args['id'];
+            $postQuery = "SELECT PostId, CategoryId, AuthorId, Title, Content FROM Post WHERE PostId = :id";
+            $args['post'] = dbGetRecords($this->db, $postQuery, ['id' => $id], 1);
 
-        $categoriesQuery = "SELECT
-                                *, 
-                                CASE WHEN CategoryId = :categoryId THEN 'selected' ELSE NULL END AS sel 
+            $categoriesQuery = "SELECT
+                                    *, 
+                                    CASE WHEN CategoryId = :categoryId THEN 'selected' ELSE NULL END AS sel 
+                                FROM 
+                                    Category";
+            $args['categories'] = dbGetRecords($this->db, $categoriesQuery, ['categoryId' => $args['post']['CategoryId']], 0);
+
+            $authorsQuery = "SELECT 
+                                AuthorId, 
+                                DisplayName, 
+                                CASE WHEN AuthorId = :authorid THEN 'selected' ELSE NULL END AS sel 
                             FROM 
-                                Category";
-        $args['categories'] = dbGetRecords($this->db, $categoriesQuery, ['categoryId' => $args['post']['CategoryId']], 0);
-        
-        $authorsQuery = "SELECT 
-                            AuthorId, 
-                            DisplayName, 
-                            CASE WHEN AuthorId = :authorid THEN 'selected' ELSE NULL END AS sel 
-                        FROM 
-                            Author";
-        $args['authors'] = dbGetRecords($this->db, $authorsQuery, ['authorid' => $args['post']['AuthorId']], 0);
-        
-        return $this->view->render($response, "editpost.html.twig", $args);
+                                Author";
+            $args['authors'] = dbGetRecords($this->db, $authorsQuery, ['authorid' => $args['post']['AuthorId']], 0);
+
+            return $this->view->render($response, "editpost.html.twig", $args);
+        }
+        else
+        {
+            $args['message'] = "A post with this ID does not exist. Please try anotehr ID.";
+            return $this->view->render($response, "message.html.twig", $args);
+        }
     }
     else
     {
         $args['message'] = "You have entered an invalid post, please try again";
-        return $this->view->render($response, "editpost.html.twig", $args);
+        return $this->view->render($response, "message.html.twig", $args);
     }
 });
 
