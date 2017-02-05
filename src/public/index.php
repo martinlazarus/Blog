@@ -39,34 +39,22 @@ $container["view"] = function ($container)
     return $view;
 };
 
+$container['controller.home'] = function($container)
+{
+    return new \Blog\Controller\HomeController($container['view']);
+};
+
+$container['controller.post'] = function($container)
+{
+    return new \Blog\Controller\PostController($container['view']);
+};
+
 $app = new \Slim\App($container);
 //$app->config('debug', true);
         
-$app->get('/', function(Request $request, Response $response) {
-    $response->getBody()->write("Hello World");
-    
-    return $response;
-});
+$app->get('/', 'controller.home:hello');
 
-$app->get('/posts', function(Request $request, Response $response, $args) {
-    $query = "  SELECT
-                    P.PostId,
-                    P.Title,
-                    P.Content,
-                    P.Created_at,
-                    P.Updated_at,
-                    A.DisplayName,
-                    A.FirstName,
-                    A.LastName,
-                    C.Name AS CategoryName
-                FROM 
-                    Post AS P
-                    JOIN Author AS A ON P.AuthorId = A.AuthorId
-                    JOIN Category AS C ON P.CategoryId = C.CategoryId";
-    $args['posts'] = dbGetRecords($this->db, $query, [], 0);
-    
-    return $this->view->render($response, 'posts.html.twig', $args);
-});
+$app->get('/allposts', 'controller.post:allposts'); 
 
 $app->post('/post', function(Request $request, Response $response) {
     if (
