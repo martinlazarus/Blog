@@ -11,7 +11,7 @@ class Posts
         $this->db = $db;
     }
     
-    public function allPosts()
+    public function getAll()
     {
         
     }

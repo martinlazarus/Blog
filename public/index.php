@@ -46,7 +46,8 @@ $container['controller.home'] = function($container)
 
 $container['controller.post'] = function($container)
 {
-    return new \Blog\Controller\PostController($container['view']);
+    $db = new \Blog\Database($container["config"]["db"]);
+    return new \Blog\Controller\PostController($container['view'], $db);
 };
 
 $app = new \Slim\App($container);
