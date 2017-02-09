@@ -1,18 +1,36 @@
 <?php
 
-namespace Blog\Controller\Repository;
+namespace Blog\Repository;
 
 class Posts
 {
+    /**
+     *
+     * @var \Blog\Database 
+     */
     protected $db;
     
-    public function __construct(PDO $db) 
+    public function __construct(\Blog\Database $db) 
     {
         $this->db = $db;
     }
     
-    public function getAll()
+    public function getAll():array
     {
-        
+        $query = "SELECT
+                      P.PostId,
+                      P.Title,
+                      C.Name AS CategoryName,
+                      P.Content,
+                      A.DisplayName,
+                      A.FirstName,
+                      A.LastName,
+                      P.Created_at,
+                      P.Updated_at
+                   FROM
+	               Post AS P
+                       JOIN Category AS C ON P.CategoryId = C.CategoryId
+                       JOIN Author AS A ON P.AuthorId = A.AuthorId";
+        return $this->db->getQueryResults($query, []);
     }
 }

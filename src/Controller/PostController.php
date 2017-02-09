@@ -4,40 +4,30 @@ namespace Blog\Controller;
 
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
-use Blog;
+use Blog\Repository\Posts;
 
-class PostController extends BaseController
+class PostController
 {
+    /**
+     *
+     * @var \Slim\Views\Twig 
+     */
     protected $view;
     /**
      *
-     * @var \Blog\Database 
+     * @var Posts 
      */
-    public $db;
+    public $postsRepo;
     
-    public function __construct($view, \Blog\Database $db) 
+    public function __construct($view, Posts $postsRepo) 
     {
-        parent::__construct($view, $db);
+        $this->view = $view;
+        $this->postsRepo = $postsRepo;
     }
     
     public function allposts(Request $request, Response $response)
     {
-        $results = $this->db->getQueryResults("SELECT * FROM Post", []);
-        echo "hey there";
-        die();
-        $dbParams = [
-                        'host'      => 'localhost',
-                        'user'      => 'root',
-                        'pass'      => '',
-                        'dbname'    => 'Blog'
-                    ];
-        $db = new Blog\Database($dbParams);
-        //$results = $db->getQueryResults("SELECT * FROM Posts", []);
-        var_dump($results);
-        die();
-        return $this->view->render($response, 'message.html.twig',
-            [
-               'message' => 'this is the ALL POSTS method'
-            ]);
+       $args['posts'] = $this->postsRepo->getAll();
+       return $this->view->render($response, '/Post/posts.html.twig', $args);
     }
 }

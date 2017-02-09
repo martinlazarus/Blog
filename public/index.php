@@ -2,6 +2,9 @@
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
+use Blog\Controller as Controller;
+use Blog\Repository as Repo;
+use Blog\Database;
 
 require '../vendor/autoload.php';
 
@@ -18,12 +21,13 @@ $container["config"] =
 
 $container["db"] = function ($c)
 {
-    $db = $c["config"]["db"];
-    $pdo = new PDO("mysql:host=" . $db["host"] . ";dbname=" . $db["dbname"] , $db["user"], $db["pass"]);
+//    $db = $c["config"]["db"];
+//    $pdo = new PDO("mysql:host=" . $db["host"] . ";dbname=" . $db["dbname"] , $db["user"], $db["pass"]);
+//    
+//    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+//    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    return $pdo;
+    return new Blog\Database($c["config"]["db"]);
 };
 
 $container["view"] = function ($container)
@@ -41,13 +45,12 @@ $container["view"] = function ($container)
 
 $container['controller.home'] = function($container)
 {
-    return new \Blog\Controller\HomeController($container['view']);
+    return new Controller\HomeController($container['view']);
 };
 
 $container['controller.post'] = function($container)
 {
-    $db = new \Blog\Database($container["config"]["db"]);
-    return new \Blog\Controller\PostController($container['view'], $db);
+    return new \Blog\Controller\PostController($container['view'], new Repo\Posts($container["db"]));
 };
 
 $app = new \Slim\App($container);

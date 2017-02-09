@@ -23,7 +23,7 @@ class Database
     
     public function getQueryResults(string $query, array $params):array
     {
-        $stmp = $this->handle->prepare("SELECT * FROM Post");
+        $stmp = $this->handle->prepare($query);
         $stmp->execute($params);
         return $stmp->fetchAll();
     }
