@@ -27,4 +27,11 @@ class Database
         $stmp->execute($params);
         return $stmp->fetchAll();
     }
+    
+    public function getQueryResultOneRecord(string $query, array $params)
+    {
+        $stmp = $this->handle->prepare($query);
+        $stmp->execute($params);
+        return $stmp->fetch();
+    }
 }

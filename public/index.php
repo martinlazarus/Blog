@@ -3,7 +3,9 @@
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Blog\Controller as Controller;
-use Blog\Repository as Repo;
+use Blog\Repository\Posts;
+use Blog\Repository\Categories;
+use Blog\Repository\Authors;
 use Blog\Database;
 
 require '../vendor/autoload.php';
@@ -20,14 +22,23 @@ $container["config"] =
 ];
 
 $container["db"] = function ($c)
-{
-//    $db = $c["config"]["db"];
-//    $pdo = new PDO("mysql:host=" . $db["host"] . ";dbname=" . $db["dbname"] , $db["user"], $db["pass"]);
-//    
-//    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-//    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    
+{    
     return new Blog\Database($c["config"]["db"]);
+};
+
+$container["repo.posts"] = function($c)
+{
+    return new Posts($c["db"]);
+};
+
+$container["repo.categories"] = function($c)
+{
+    return new Categories($c["db"]);
+};
+
+$container["repo.authors"] = function($c)
+{
+    return new Authors($c["db"]);
 };
 
 $container["view"] = function ($container)
@@ -50,7 +61,12 @@ $container['controller.home'] = function($container)
 
 $container['controller.post'] = function($container)
 {
-    return new \Blog\Controller\PostController($container['view'], new Repo\Posts($container["db"]));
+    return new \Blog\Controller\PostController(
+                                                $container['view'], 
+                                                $container['repo.posts'],
+                                                $container['repo.categories'],
+                                                $container['repo.authors']
+                                              );
 };
 
 $app = new \Slim\App($container);
@@ -58,7 +74,9 @@ $app = new \Slim\App($container);
         
 $app->get('/', 'controller.home:hello');
 
-$app->get('/allposts', 'controller.post:allposts'); 
+$app->get('/allposts', 'controller.post:allposts');
+
+$app->get('/edit_post/{PostId}', 'controller.post:edit_post');
 
 $app->post('/post', function(Request $request, Response $response) {
     if (
