@@ -55,4 +55,26 @@ class Posts
         $params = ['postId' => $postId];
         return $this->db->getQueryResultOneRecord($query, $params);
     }
+    
+    public function updatePost(int $postId, array $data)
+    {
+        $query = "UPDATE Post
+                      SET CategoryId = :category,
+                          AuthorId = :author,
+                          Title = :title,
+                          Content = :content
+                      WHERE
+                          PostId = :postid";
+        
+        return $this->db->getAffectedRows($query, $data);
+    }
+    
+    public function deletePost(int $postId)
+    {
+        $query = "DELETE FROM Post
+                      WHERE PostId = :postid";
+        $params = ['postid' => $postId];
+        
+        return $this->db->getAffectedRows($query, $params);
+    }
 }

@@ -13,9 +13,10 @@
 {% endblock %}
 
 {% block content %}
+    
     <h1>Edit Post</h1>
     
-    <form action="/editpost" method="POST" >
+    <form action="/post/{{post.PostId}}" method="POST" >
         <p><input type="text" placeholder="Title" name="title" value="{{post.Title}}"></p>
         <p>
             <select name="category">
@@ -32,8 +33,13 @@
             </select>
         </p>
         <p><textarea placeholder="Content" name="content" rows="10" cols="50">{{post.Content}}</textarea></p>
-        <p><input type="hidden" value="{{post.PostId}}" name="postid"></p>
-        <button type="submit">Save Post!</button>
+        <input type="hidden" id="_METHOD" name="_METHOD" value="PUT" />
+        <button type="submit">Save Changes</button>
+    </form>
+        <br>
+    <form action="/post/{{post.PostId}}" method="POST" >
+        <input type="hidden" id="_METHOD" name="_METHOD" value="DELETE" />
+        <button type ="submit">Delete Post</button>        
     </form>
     
     

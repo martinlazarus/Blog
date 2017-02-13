@@ -34,4 +34,11 @@ class Database
         $stmp->execute($params);
         return $stmp->fetch();
     }
+    
+    public function getAffectedRows(string $query, array $params)
+    {
+        $stmp = $this->handle->prepare($query);
+        $stmp->execute($params);
+        return $stmp->rowCount();
+    }
 }

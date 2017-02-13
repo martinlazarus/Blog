@@ -76,7 +76,11 @@ $app->get('/', 'controller.home:hello');
 
 $app->get('/allposts', 'controller.post:allposts');
 
-$app->get('/edit_post/{PostId}', 'controller.post:edit_post');
+$app->get('/post/{PostId}', 'controller.post:getPost');
+
+$app->put('/post/{PostId}', 'controller.post:editPost');
+
+$app->delete('/post/{PostId}', 'controller.post:deletePost');
 
 $app->post('/post', function(Request $request, Response $response) {
     if (
