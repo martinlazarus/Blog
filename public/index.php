@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -24,6 +25,10 @@ $container["config"] =
 $container["db"] = function ($c)
 {    
     return new Blog\Database($c["config"]["db"]);
+};
+
+$container['flash'] = function () {
+    return new \Slim\Flash\Messages();
 };
 
 $container["repo.posts"] = function($c)
@@ -65,7 +70,8 @@ $container['controller.post'] = function($container)
                                                 $container['view'], 
                                                 $container['repo.posts'],
                                                 $container['repo.categories'],
-                                                $container['repo.authors']
+                                                $container['repo.authors'],
+                                                $container['flash']
                                               );
 };
 

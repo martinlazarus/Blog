@@ -8,6 +8,7 @@ use Blog\Repository\Posts;
 use Blog\Repository\Categories;
 use Blog\Repository\Authors;
 use Blog\Utilities;
+use \Slim\Flash\Messages;
 
 class PostController
 {
@@ -17,19 +18,23 @@ class PostController
      * @param Posts $postsRepo
      * @param Categories $catsRepo
      * @param Authors $authorsRepo
+     * @param Messages $flash
      */
     
     protected $view;
     protected $postsRepo;
     protected $catsRepo;
     protected $authorsRepo;
+    protected $flash;
     
-    public function __construct($view, Posts $postsRepo, Categories $catsRepo, Authors $authorsRepo) 
+    public function __construct($view, Posts $postsRepo, Categories $catsRepo, Authors $authorsRepo,
+                    Messages $flash) 
     {
         $this->view = $view;
         $this->postsRepo = $postsRepo;
         $this->catsRepo = $catsRepo;
         $this->authorsRepo = $authorsRepo;
+        $this->flash = $flash;
     }
     
     public function allposts(Request $request, Response $response)
@@ -43,6 +48,7 @@ class PostController
         $args['post'] = $this->postsRepo->getOne($args['PostId']);
         $args['categories'] = $this->catsRepo->getAllWithSelection($args['PostId']);
         $args['authors'] = $this->authorsRepo->getAllWithSelection($args['PostId']);
+        $args['message'] = $this->flash->getMessage('editedPost')[0];
         return $this->view->render($response, '/Post/edit_post.html.twig', $args);
     }
     
@@ -55,12 +61,13 @@ class PostController
         if ($rowsAffected)
         {
             $args['message'] = 'The post was successfully updated.';
+            $this->flash->addMessage('editedPost', 'This post has been updated');
         }
         else
         {
             $args['message'] = 'The post could not be updated. Please try again later.';
         }
-        return $this->view->render($response, 'message.html.twig', $args);
+        return $response->withHeader('Location', '/post/' . $params['postid']);
     }
     
     public function deletePost(Request $request, Response $response, array $args)
