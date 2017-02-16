@@ -80,7 +80,9 @@ $app = new \Slim\App($container);
         
 $app->get('/', 'controller.home:hello');
 
-$app->get('/allposts', 'controller.post:allposts');
+$app->get('/post', 'controller.post:newPost');
+
+$app->get('/posts', 'controller.post:allposts');
 
 $app->get('/post/{PostId}', 'controller.post:getPost');
 
@@ -117,104 +119,6 @@ $app->post('/post', function(Request $request, Response $response) {
         $args = ['message' => 'Please check your request and try again.'];
     }
     return $this->view->render($response, 'message.html.twig', $args);
-});
-
-$app->get('/deletepost/{id}', function(Request $request, Response $response, $args){
-    if (array_key_exists('id', $args))
-    {
-        if (is_numeric($args['id']) == 1)
-        {
-            /* @var $db PDO */
-            $db = $this->db;
-            $query = "DELETE FROM Post WHERE PostId = :id";
-            $params = getPDOParamsArray(['id'], $args);
-            $rows = dbCreateUpdateDelete($this->db, $query, $params);
-            if($rows)
-            {
-                $args = ['message' => 'Post has been deleted successfully'];
-            }
-            else 
-            {
-                $args = ['message' => 'This post does not exist, please try another post id'];
-            }
-        }
-        else
-        {
-            $args = ['message' => 'You have entered a value that is not a number. Please try again' ];
-        }
-    }
-    else
-    {
-        $args = ['message' => 'Please check your request and try again'];
-    }
-    return $this->view->render($response, 'message.html.twig', $args);
-});
-
-$app->get('/newpost', function(Request $request, Response $response, $args) {
-    $categoryQuery = "SELECT * FROM Category";
-    $authorQuery = "SELECT AuthorId, DisplayName FROM Author";
-    $args['categories'] = dbGetRecords($this->db, $categoryQuery, [], 0);
-    $args['authors'] = dbGetRecords($this->db, $authorQuery, [], 0);
-    
-    return $this->view->render($response, "newpost.html.twig", $args);
-});
-
-$app->get('/editpost/{id}', function(Request $request, Response $response, $args) {
-    if (array_key_exists('id', $args) && is_numeric($args['id']))
-    {
-        $checkPost = "SELECT PostId FROM Post WHERE PostId = :postid";
-        if (dbGetRecords($this->db, $checkPost, ['postid' => $args['id']], 1))
-        {
-            $id = $args['id'];
-            $postQuery = "SELECT PostId, CategoryId, AuthorId, Title, Content FROM Post WHERE PostId = :id";
-            $args['post'] = dbGetRecords($this->db, $postQuery, ['id' => $id], 1);
-
-            $categoriesQuery = "SELECT
-                                    *, 
-                                    CASE WHEN CategoryId = :categoryId THEN 'selected' ELSE NULL END AS sel 
-                                FROM 
-                                    Category";
-            $args['categories'] = dbGetRecords($this->db, $categoriesQuery, ['categoryId' => $args['post']['CategoryId']], 0);
-
-            $authorsQuery = "SELECT 
-                                AuthorId, 
-                                DisplayName, 
-                                CASE WHEN AuthorId = :authorid THEN 'selected' ELSE NULL END AS sel 
-                            FROM 
-                                Author";
-            $args['authors'] = dbGetRecords($this->db, $authorsQuery, ['authorid' => $args['post']['AuthorId']], 0);
-
-            return $this->view->render($response, "editpost.html.twig", $args);
-        }
-        else
-        {
-            $args['message'] = "A post with this ID does not exist. Please try anotehr ID.";
-            return $this->view->render($response, "message.html.twig", $args);
-        }
-    }
-    else
-    {
-        $args['message'] = "You have entered an invalid post, please try again";
-        return $this->view->render($response, "message.html.twig", $args);
-    }
-});
-
-$app->post('/editpost', function(Request $request, Response $response, $args) {
-    $params = getPDOParams(['postid', 'title', 'content', 'category', 'author'], $request);
-    $query = "UPDATE POST
-                SET CategoryId = :category,
-                    AuthorId = :author,
-                    Title = :title,
-                    Content = :content
-              WHERE
-                PostId = :postid";
-    $rows = dbCreateUpdateDelete($this->db, $query, $params);
-    $args['message'] = ($rows >= 1 ? "Post updated successfully" : "Problem updated Post. Please try again.");
-    $this->view->render($response, 'message.html.twig', $args);
-});
-
-$app->get('/addcategory', function(Request $request, Response $response, $args) { 
-    return $this->view->render($response, "addcategory.html.twig", $args);
 });
 
 $app->post('/addcategory', function(Request $request, Response $response, $args) { 

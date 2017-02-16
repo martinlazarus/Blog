@@ -5,21 +5,28 @@
 {% endblock %}
 
 {% block head %}
-    {{ parent() }}
+  {#  {{ parent() }} #}
 {% endblock %}
 
 {% block content %}
+    {% if(success) %}
+        <h3 style="color: green">{{success}}</h3>
+    {% endif %}
     <h1>New Post</h1>
         {% for row in posts %}
-            <p><b>PostId:</b>{{row.PostId}}</p>
-            <p><b>Title:</b>{{row.Title}}</p>
-            <p><b>Category:</b>{{row.CategoryName}}</p>
-            <p><b>Content:</b>{{row.Content}}</p>
-            <p><b>Author Display Name:</b>{{row.DisplayName}}</p>
-            <p><b>Author First Name:</b>{{row.FirstName}}</p>
-            <p><b>Author Last Name:</b>{{row.LastName}}</p>
-            <p><b>Created at:</b>{{row.Created_at}}</p>
-            <p><b>Updated at:</b>{{row.Updated_at}}</p>
+            <form action="/post/{{row.PostId}}" method="POST" >
+                <input type="hidden" id="_METHOD" name="_METHOD" value="DELETE" />
+                <button type ="submit">Delete Post</button> 
+            </form>
+            <div><b>Post Id:</b>{{row.PostId}}</div>
+            <div><b>Title:</b>{{row.Title}}</div>
+            <div><b>Category:</b>{{row.CategoryName}}</div>
+            <div><b>Content:</b>{{row.Content}}</div>
+            <div><b>Author Display Name:</b>{{row.DisplayName}}</div>
+            <div><b>Author First Name:</b>{{row.FirstName}}</div>
+            <div><b>Author Last Name:</b>{{row.LastName}}</div>
+            <div><b>Created at:</b>{{row.Created_at}}</div>
+            <div><b>Updated at:</b>{{row.Updated_at}}</div>
             <br>
         {% endfor %} 
 {% endblock %}

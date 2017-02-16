@@ -13,7 +13,15 @@
 {% endblock %}
 
 {% block content %}
-    <h3 style="color: red"> {{message}} </h3>
+    
+    {% if(success) %}
+        <h3 style="color: green"> {{success}} </h3>
+    {% endif %}
+    
+    {% if(error) %}
+        <h3 style="color: red"> {{error}} </h3>
+    {% endif %}
+    
     <h1>Edit Post</h1>
     
     <form action="/post/{{post.PostId}}" method="POST" >

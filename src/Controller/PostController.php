@@ -43,12 +43,27 @@ class PostController
        return $this->view->render($response, '/Post/posts.html.twig', $args);
     }
     
+    public function newPost(Request $request, Response $response, array $args)
+    {        
+        $args['categories'] = $this->catsRepo->getAll();
+        $args['authors'] = $this->authorsRepo->getAll();
+        //var_dump($args);
+        return $this->view->render($response, '/Post/newpost.html.twig', $args);
+    }
+    
+    public function savePost(Request $request, Response $response, array $args)
+    {
+        $body = ['title', 'category', 'author', 'content'];
+        $params = Utilities::getPDOParams($body, $request);
+    }
+    
     public function getPost(Request $request, Response $response, array $args)
     {
         $args['post'] = $this->postsRepo->getOne($args['PostId']);
         $args['categories'] = $this->catsRepo->getAllWithSelection($args['PostId']);
         $args['authors'] = $this->authorsRepo->getAllWithSelection($args['PostId']);
-        $args['message'] = $this->flash->getMessage('editedPost')[0];
+        $args['success'] = $this->flash->getMessage('success')[0];
+        $args['error'] = $this->flash->getMessage('error')[0];
         return $this->view->render($response, '/Post/edit_post.html.twig', $args);
     }
     
@@ -60,12 +75,11 @@ class PostController
         $rowsAffected = $this->postsRepo->updatePost($params['postid'], $params);
         if ($rowsAffected)
         {
-            $args['message'] = 'The post was successfully updated.';
-            $this->flash->addMessage('editedPost', 'This post has been updated');
+            $this->flash->addMessage('success', 'This post has been updated');
         }
         else
         {
-            $args['message'] = 'The post could not be updated. Please try again later.';
+            $this->flash->addMessage('error', 'Post could not be updated, please try again later');
         }
         return $response->withHeader('Location', '/post/' . $params['postid']);
     }
@@ -82,6 +96,7 @@ class PostController
         {
             $args['message'] = 'The post could not be deleted. Please try again later.';
         }
-        return $this->view->render($response, 'message.html.twig', $args);
+        
+        return $response->withHeader('Location', '/posts');
     }
 }
