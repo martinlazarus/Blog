@@ -2,17 +2,26 @@
 
 namespace Blog\Repository;
 
+use Blog\Repository\Authors;
+use Blog\Repository\Categories;
+
 class Posts
 {
     /**
      *
-     * @var \Blog\Database 
+     * @param $db \Blog\Database
+     * @param $author Authors
+     * @param $category Categories
      */
     protected $db;
+    protected $author;
+    protected $category;
     
     public function __construct(\Blog\Database $db) 
     {
         $this->db = $db;
+        $this->author = new Authors($db);
+        $this->category = new Categories($db);
     }
     
     public function getAll():array
@@ -90,5 +99,13 @@ class Posts
         $params = ['postid' => $postId];
         
         return $this->db->getAffectedRows($query, $params);
+    }
+    
+    public function getNewPost():array
+    {
+        $data = array();
+        $data['authors'] = $this->author->getAll();
+        $data['categories'] = $this->category->getAll();
+        return $data;
     }
 }

@@ -44,10 +44,8 @@ class PostController
     }
     
     public function newPost(Request $request, Response $response, array $args)
-    {        
-        $args['categories'] = $this->catsRepo->getAll();
-        $args['authors'] = $this->authorsRepo->getAll();
-        //var_dump($args);
+    {
+        $args = $this->postsRepo->getNewPost();
         return $this->view->render($response, '/Post/newpost.html.twig', $args);
     }
     
