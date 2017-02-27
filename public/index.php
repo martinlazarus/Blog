@@ -90,36 +90,7 @@ $app->put('/post/{PostId}', 'controller.post:editPost');
 
 $app->delete('/post/{PostId}', 'controller.post:deletePost');
 
-$app->post('/post', function(Request $request, Response $response) {
-    if (
-            checkValidParams($request, ['categoryid', 'authorid', 'title', 'content'])
-       )
-    {
-        try
-        {
-            $query = "INSERT INTO Post
-                        (
-                            CategoryId,
-                            AuthorId,
-                            Title,
-                            Content
-                        )
-                    VALUES(:categoryid, :authorid, :title, :content)";
-            $params = getPDOParams(['categoryid', 'authorid', 'title', 'content'], $request);
-            dbCreateUpdateDelete($this->db, $query, $params);
-            $args = ['message' => 'Post created successfully!'];
-        } 
-        catch(Exception $e)
-        {
-            $args = ['message' => 'Sorry, there was an error. Please try again.'];
-        }
-    }
-    else
-    {
-        $args = ['message' => 'Please check your request and try again.'];
-    }
-    return $this->view->render($response, 'message.html.twig', $args);
-});
+$app->post('/post', 'controller.post:savePost');
 
 $app->post('/addcategory', function(Request $request, Response $response, $args) { 
     if($request->getParam('category') != null)

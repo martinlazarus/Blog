@@ -12,13 +12,18 @@
     {% if(success) %}
         <h3 style="color: green">{{success}}</h3>
     {% endif %}
-    <h1>New Post</h1>
+    <h1>All Posts</h1>
+        <form action="/post/0" method="POST">
+              <input type="hidden" id="_METHOD" name="_METHOD" value="PUT" />
+              <button type="submit">Undelete All Posts</button>
+              
+        </form>
         {% for row in posts %}
             <form action="/post/{{row.PostId}}" method="POST" >
                 <input type="hidden" id="_METHOD" name="_METHOD" value="DELETE" />
                 <button type ="submit">Delete Post</button> 
             </form>
-            <div><b>Post Id:</b>{{row.PostId}}</div>
+            <div><b>Post Id:</b>{{row.PostId}} <a href="/post/{{row.PostId}}">Edit Post</a></div>
             <div><b>Title:</b>{{row.Title}}</div>
             <div><b>Category:</b>{{row.CategoryName}}</div>
             <div><b>Content:</b>{{row.Content}}</div>

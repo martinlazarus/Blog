@@ -47,8 +47,9 @@ class Posts
     
     public function newPost(array $params):int
     {
-        $query = "INSERT INTO Post(Title, CategoryId, AuthorId, Content)
-                      VALUES(:title, :category, :author, :content)";
+        $query = "INSERT INTO Post(Title, CategoryId, AuthorId, Content, IsDeleted)
+                      VALUES(:title, :category, :author, :content, 0)";
+        return $this->db->getAffectedRows($query, $params);
                       
     }
     
@@ -91,7 +92,7 @@ class Posts
     
     public function deletePost(int $postId)
     {
-        $query = "UPDATE FROM Post
+        $query = "UPDATE Post
                   SET 
                       IsDeleted = 1 
                   WHERE
@@ -101,11 +102,28 @@ class Posts
         return $this->db->getAffectedRows($query, $params);
     }
     
+    public function undeletePosts() 
+    {
+        $query = "UPDATE Post
+                      SET IsDeleted = 0";
+        $params = [];
+        return $this->db->getAffectedRows($query, $params);
+    }
+    
     public function getNewPost():array
     {
         $data = array();
         $data['authors'] = $this->author->getAll();
         $data['categories'] = $this->category->getAll();
+        return $data;
+    }
+    
+    public function getExistingPost(int $PostId):array
+    {
+        $data = array();
+        $data['post'] = $this->getOne($PostId);
+        $data['authors'] = $this->author->getAllWithSelection($PostId);
+        $data['categories'] = $this->category->getAllWithSelection($PostId);
         return $data;
     }
 }
