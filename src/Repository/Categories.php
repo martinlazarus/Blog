@@ -39,3 +39,17 @@ class Categories
         return $this->db->getQueryResults($query, $params);
     }
 }
+
+//    if($request->getParam('category') != null)
+//    {
+//        $query = "INSERT INTO Category VALUES (DEFAULT, :category)";
+//        $params = getPDOParams(['category'], $request);
+//        dbCreateUpdateDelete($this->db, $query, $params);
+//        $args = ['message' => 'Category created successfully'];
+//        return $this->view->render($response, "message.html.twig", $args);
+//    }
+//    else
+//    {
+//        $args = ['message' => 'Please enter a category and try again'];
+//        return $this->view->render($response, "message.html.twig", $args);
+//    }

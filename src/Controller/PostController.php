@@ -5,8 +5,6 @@ namespace Blog\Controller;
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 use Blog\Repository\Posts;
-use Blog\Repository\Categories;
-use Blog\Repository\Authors;
 use Blog\Utilities;
 use \Slim\Flash\Messages;
 
@@ -16,24 +14,17 @@ class PostController
      * 
      * @param type $view
      * @param Posts $postsRepo
-     * @param Categories $catsRepo
-     * @param Authors $authorsRepo
      * @param Messages $flash
      */
     
     protected $view;
     protected $postsRepo;
-    protected $catsRepo;
-    protected $authorsRepo;
     protected $flash;
     
-    public function __construct($view, Posts $postsRepo, Categories $catsRepo, Authors $authorsRepo,
-                    Messages $flash) 
+    public function __construct($view, Posts $postsRepo, Messages $flash) 
     {
         $this->view = $view;
         $this->postsRepo = $postsRepo;
-        $this->catsRepo = $catsRepo;
-        $this->authorsRepo = $authorsRepo;
         $this->flash = $flash;
     }
     

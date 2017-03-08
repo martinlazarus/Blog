@@ -69,10 +69,17 @@ $container['controller.post'] = function($container)
     return new \Blog\Controller\PostController(
                                                 $container['view'], 
                                                 $container['repo.posts'],
-                                                $container['repo.categories'],
-                                                $container['repo.authors'],
                                                 $container['flash']
                                               );
+};
+
+$container['controller.category'] = function($container)
+{
+    return new Controller\CategoryController(
+                                              $container['view'],
+                                              $container['repo.categories'],
+                                              $container['flash']
+                                             );
 };
 
 $app = new \Slim\App($container);
@@ -92,21 +99,9 @@ $app->delete('/post/{PostId}', 'controller.post:deletePost');
 
 $app->post('/post', 'controller.post:savePost');
 
-$app->post('/addcategory', function(Request $request, Response $response, $args) { 
-    if($request->getParam('category') != null)
-    {
-        $query = "INSERT INTO Category VALUES (DEFAULT, :category)";
-        $params = getPDOParams(['category'], $request);
-        dbCreateUpdateDelete($this->db, $query, $params);
-        $args = ['message' => 'Category created successfully'];
-        return $this->view->render($response, "message.html.twig", $args);
-    }
-    else
-    {
-        $args = ['message' => 'Please enter a category and try again'];
-        return $this->view->render($response, "message.html.twig", $args);
-    }
-});
+$app->get('/category', 'controller.category:getCategory');
+
+$app->get('/categories', 'controller.category:allcategories');
 
 $app->get('/addauthor', function(Request $request, Response $response, $args) { 
     return $this->view->render($response, "addauthor.html.twig", $args);

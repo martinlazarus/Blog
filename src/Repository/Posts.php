@@ -41,7 +41,9 @@ class Posts
                        JOIN Category AS C ON P.CategoryId = C.CategoryId
                        JOIN Author AS A ON P.AuthorId = A.AuthorId
                    WHERE
-                       IsDeleted = 0";
+                       IsDeleted = 0
+                   ORDER BY
+                       P.PostId";
         return $this->db->getQueryResults($query, []);
     }
     
